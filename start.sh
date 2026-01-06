@@ -10,4 +10,4 @@ docker run -it \
   --shm-size=2g \
   --privileged \
   -v "$(pwd)/catkin_ws:/root/catkin_ws" \
-  ros-noetic-novnc
+  ros-noetic-workstation
