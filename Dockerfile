@@ -8,8 +8,26 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     net-tools iputils-ping iproute2 curl wget git vim gpg terminator python3-pip \
     libgl1-mesa-dri libgl1-mesa-glx libgl1-mesa-dev mesa-utils mesa-vulkan-drivers libglx-mesa0 \
-    xvfb x11vnc fluxbox supervisor \
+    xvfb x11vnc fluxbox supervisor feh \
     && rm -rf /var/lib/apt/lists/*
+    
+# Create the fluxbox settings directory and download bg
+RUN mkdir -p /root/.fluxbox
+RUN mkdir -p /usr/share/wallpapers && \
+    curl -L https://images.wallpapersden.com/image/download/dark-black-abstract-art_aWltaGeUmZqaraWkpJRmbmdlrWZnZWU.jpg -o /usr/share/wallpapers/background.jpg
+    
+# Create Terminal config
+RUN mkdir -p /root/.config/terminator/
+
+# Copy the fluxbox menu file 
+COPY fluxbox-menu /root/.fluxbox/menu
+# Copy the teminal config
+COPY terminator-config /root/.config/terminator/config
+
+# Configure Fluxbox to use the dark wallpaper and custom menu
+# Configure wallpaper
+RUN echo "session.screen0.rootCommand: feh --bg-fill /usr/share/wallpapers/background.jpg" >> /root/.fluxbox/init && \
+    echo "session.menuFile: /root/.fluxbox/menu" >> /root/.fluxbox/init
 
 # 2. Install VS Code
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg \
@@ -37,13 +55,17 @@ RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
     echo "export ROS_MASTER_URI=http://localhost:11311" >> /root/.bashrc
 
 # 6. Pre-install ROS VS Code Extension
-RUN code --user-data-dir=/root --install-extension ms-iot.vscode-ros --no-sandbox
+RUN code --user-data-dir=/root --no-sandbox --install-extension ms-iot.vscode-ros \
+         --install-extension ms-vscode.cpptools \
+         --install-extension twxs.cmake \
+         --install-extension ms-python.python
 
 # 7. Finalize Environment
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ENV DISPLAY=:99
 ENV SCREEN_RESOLUTION=1920x1080
-ENV GALLIUM_DRIVER=radeonsi
+ENV LIBGL_ALWAYS_SOFTWARE=1
+ENV GALLIUM_DRIVER=llvmpipe
 
 EXPOSE 6080
 

@@ -1,0 +1,19 @@
+[global_config]
+[keybindings]
+[profiles]
+  [[default]]
+    background_color = "#1e1e1e"
+    cursor_color = "#e67e22"
+    foreground_color = "#ffffff"
+    show_titlebar = False
+    scrollbar_position = hidden
+    font = Monospace 11
+[layouts]
+  [[default]]
+    [[[window0]]]
+      type = Window
+      parent = ""
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+[plugins]

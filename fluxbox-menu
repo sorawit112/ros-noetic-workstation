@@ -1,0 +1,17 @@
+[begin] (Fluxbox)
+    [exec] (Terminal) {terminator}
+    [exec] (VS Code) {code --user-data-dir=/root --no-sandbox --new-window /root/catkin_ws}
+    [separator]
+    [submenu] (ROS Tools)
+        [exec] (Start roscore) {terminator -e "roscore"}
+        [exec] (RViz) {terminator -e "rosrun rviz rviz"}
+        [exec] (RQT Graph) {terminator -e "rqt_graph"}
+    [end]
+    [separator]
+    [submenu] (System)
+        [workspaces] (Workspaces)
+        [reconfig] (Reconfigure)
+        [restart] (Restart)
+        [exit] (Exit)
+    [end]
+[end]

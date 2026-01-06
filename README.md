@@ -1,73 +1,92 @@
-# 🐳 ROS Noetic + Ryzen AI (AMDGPU) Docker Environment
+# 🐳 ROS Noetic Workstation (Ryzen AI / AMDGPU Optimized)
 
-This repository contains a high-performance, hardware-accelerated ROS development environment. It is specifically tuned for **Ryzen AI (RDNA3)** integrated GPUs and solves common conflicts when running Docker with `--network host` on a Linux host (ExpertBook).
+A high-performance, hardware-accelerated ROS Noetic development environment. This workstation is specifically tuned for **AMD Ryzen AI (RDNA3)** integrated GPUs and uses a non-conflicting display architecture to run alongside your host Linux desktop.
 
 ---
 
 ## 🏗 System Architecture
 
-The container shares the **Host Network Stack**. This allows for seamless communication with robots or other devices on your local network without the complexity of Docker NAT port-forwarding.
+The container uses **Host Networking** for zero-latency communication with external ROS nodes and hardware. To prevent conflicts with your ExpertBook's native display, we use a virtual X-Server offset.
 
 
 
----
-
-## 🔌 Port & Display Map
-
-To avoid crashing your host OS, the container is "offset" to non-standard ports and displays. This prevents "Address already in use" errors on your ExpertBook.
-
+### 🔌 Port & Display Map
 | Component | Identifier | Purpose |
 | :--- | :--- | :--- |
-| **Virtual Display** | `:99` | Prevents conflict with host display `:0` or `:1`. |
-| **Web UI Port** | `6080` | Access the desktop at `http://localhost:6080`. |
-| **VNC Stream** | `5999` | Internal stream between x11vnc and noVNC. |
-| **ROS Master** | `11311` | The standard ROS coordination port. |
+| **Virtual Display** | `:99` | Isolates the container from Host Display `:0`. |
+| **Web UI (noVNC)** | `6080` | Access via `http://localhost:6080`. |
+| **VNC Stream** | `5999` | Internal video stream port. |
+| **ROS Master** | `11311` | Standard ROS Master coordination. |
 
 ---
 
-## 🚀 Graphics Acceleration (AMD Ryzen AI)
+## 🚀 Graphics Acceleration
 
-This container is optimized for the **RDNA3 architecture** (e.g., Radeon 780M/760M).
-
-* **Passthrough:** Maps `/dev/dri` to the container for direct hardware access.
-* **Driver:** Uses the `radeonsi` Gallium driver via Mesa.
-* **Offloading:** RViz and Gazebo 3D rendering are handled by the GPU, keeping CPU usage low.
+Optimized for **AMD Radeon 780M/760M** (RDNA3) hardware:
+* **GPU Passthrough:** Maps `/dev/dri` for native RDNA3 performance.
+* **Mesa Drivers:** Utilizes `radeonsi` for RViz and Gazebo hardware acceleration.
+* **Efficiency:** Offloads 3D rendering from the CPU to the integrated GPU.
 
 
 
 ---
 
-## 🛠 Functional Workflow (Supervisord)
+## 🛠 Features
 
-The container uses `supervisord` to manage the startup sequence. This ensures that the environment is ready before ROS components launch:
+### 💻 Custom UI & Desktop
+- **Window Manager:** Lightweight Fluxbox with a custom dark tech wallpaper.
+- **Terminal:** Pre-configured **Terminator** with dark themes and AMD-inspired styling.
+- **Right-Click Menu:** - `Terminal`: Quick-launch shell.
+  - `ROS Tools > Start roscore`: Launches ROS Master in a new window.
+  - `VS Code`: Integrated development environment.
 
-1.  **Cleanup:** Clears stale `/tmp/.X99-lock` files from the shared host directory.
-2.  **Xvfb (Display :99):** Creates the virtual canvas in memory.
-3.  **Fluxbox:** Provides the window manager and taskbar.
-4.  **x11vnc:** Grabs the `:99` canvas and serves it on port `5999`.
-5.  **noVNC:** Converts the VNC stream to WebSockets for your browser on port `6080`.
-6.  **roscore:** Launches the ROS Master automatically.
+### 📝 VS Code: Robotics Developer Environment
+The environment comes pre-installed with the **Ranch Hand Robotics RDE Pack**, featuring:
+- URDF & Xacro visualizers.
+- ROS message/service intellisense.
+- Integrated Foxglove/Webviz support.
 
 ---
 
 ## 📂 Project Structure
 
-* **Dockerfile:** Installs ROS Noetic, AMD Mesa drivers, VS Code, and noVNC.
-* **supervisord.conf:** Defines the "Keep-Alive" logic and display offsets.
-* **catkin_ws:** (Volume Mapped) Your source code lives here on the host for persistence.
+* `Dockerfile`: ROS Noetic + AMD Drivers + VS Code + noVNC.
+* `supervisord.conf`: Process manager (handles Xvfb, Fluxbox, and VNC).
+* `fluxbox-menu`: Custom right-click desktop configuration.
+* `start.sh`: Intelligent startup and browser automation script.
+* `catkin_ws/`: Volume mapped directory for your persistent source code.
 
 ---
 
 ## 💻 Usage
 
-### 1. Build the Image
+### 1. Automated Setup (Recommended)
+The provided `start.sh` script checks if the image exists locally. If not, it pulls it from Docker Hub, cleans host locks, and automatically opens your browser.
+
 ```bash
-docker build -t ros-noetic-novnc .
+chmod +x start.sh
+./start.sh
+```
+
+### 2. Build and Run the Image locally
+```bash
+docker build -t ros-noetic-workstation .
 docker run -it \
   --name ros_workstation \
   --network host \
   --device=/dev/dri:/dev/dri \
   --shm-size=2g \
   -v "$(pwd)/catkin_ws:/root/catkin_ws" \
-  ros-noetic-novnc
+  ros-noetic-workstation
+```
+
+### 3. Run public DockerImage
+```bash
+docker run -it \
+  --name ros_workstation \
+  --network host \
+  --device=/dev/dri:/dev/dri \
+  --shm-size=2g \
+  -v "$(pwd)/catkin_ws:/root/catkin_ws" \
+  chinouplus/ros-noetic-workstation
 ```
