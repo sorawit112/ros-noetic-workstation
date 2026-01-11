@@ -40,6 +40,7 @@ docker run -it \
   --network host \
   --device=/dev/dri:/dev/dri \
   --shm-size=2g \
+  --env-file .env \
   -e LIBGL_ALWAYS_SOFTWARE=1 \
   -e QT_X11_NO_MITSHM=1 \
   -v "$(pwd)/catkin_ws:/root/catkin_ws" \

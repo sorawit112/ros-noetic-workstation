@@ -47,18 +47,16 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/noVNC \
 RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix && \
     mkdir -p /etc/supervisor/conf.d
 
-# 5. Configure ROS Environment and VS Code Alias
-RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
-    echo "if [ -f /root/catkin_ws/devel/setup.bash ]; then source /root/catkin_ws/devel/setup.bash; fi" >> /root/.bashrc && \
-    echo "alias code='code --user-data-dir=/root --no-sandbox'" >> /root/.bashrc && \
-    echo "export ROS_HOSTNAME=localhost" >> /root/.bashrc && \
-    echo "export ROS_MASTER_URI=http://localhost:11311" >> /root/.bashrc
-
-# 6. Pre-install ROS VS Code Extension
+# 5. Pre-install ROS VS Code Extension
 RUN code --user-data-dir=/root --no-sandbox --install-extension ms-iot.vscode-ros \
          --install-extension ms-vscode.cpptools \
          --install-extension twxs.cmake \
          --install-extension ms-python.python
+
+# 6. Configure ROS Environment and VS Code Alias
+RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
+    echo "if [ -f /root/catkin_ws/devel/setup.bash ]; then source /root/catkin_ws/devel/setup.bash; fi" >> /root/.bashrc && \
+    echo "alias code='code --user-data-dir=/root --no-sandbox'" >> /root/.bashrc
 
 # 7. Finalize Environment
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
